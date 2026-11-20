@@ -5,7 +5,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Setup failed on Home Assistant 2026.11 with `RestoreStateData has no attribute
+  last_states`: the restored lifetime totals are now read through
+  `async_get_stored_state`, with the old dict as a fallback.
+
 ### Added
+
+- `logo` and `dark_logo` brand images (1x and 2x) beside the icons, so Home Assistant
+  shows the wordmark where it has room.
 
 - `docs/compatibility.md`: which hardware is verified, which is reported or
   unknown, and how to submit a hardware report.

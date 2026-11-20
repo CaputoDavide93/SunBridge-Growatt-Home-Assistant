@@ -265,6 +265,10 @@ async def test_a_restored_lifetime_is_the_floor(hass: HomeAssistant, setup_entry
 async def test_live_values_expire_but_totals_stay(
     hass: HomeAssistant, setup_entry, freezer: FrozenDateTimeFactory
 ) -> None:
+    # Pin the clock: Home Assistant's test time zone is US/Pacific, whose
+    # midnight is 08:00 UTC, and a run that started in the 16 minutes before it
+    # saw "today" reset to 0 and failed.
+    freezer.move_to("2026-11-12 12:00:00+00:00")
     entry = await setup_entry()
     logger = await _client(hass, entry)
     await _send(hass, logger, ANNOUNCE, replies=2)

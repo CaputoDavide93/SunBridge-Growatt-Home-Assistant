@@ -392,13 +392,13 @@ class ShineHub:
         """Seed each restored inverter's lifetime total and reading time from
         what its sensors saved, so the first reading is checked against them."""
         entities = er.async_get(self.hass)
-        saved = restore_state.async_get(self.hass).last_states
+        store = restore_state.async_get(self.hass)
         for serial in self.inverters:
             for key in ("energy_total", "last_reading"):
                 entity_id = entities.async_get_entity_id(
                     "sensor", DOMAIN, f"{serial}_{key}"
                 )
-                stored = saved.get(entity_id) if entity_id else None
+                stored = self._stored_state(store, entity_id)
                 if stored is None or stored.extra_data is None:
                     continue
                 data = SensorExtraStoredData.from_dict(stored.extra_data.as_dict())
@@ -408,6 +408,17 @@ class ShineHub:
                         self.seed_last_reading(serial, value)
                 elif isinstance(value, int | float):
                     self.seed_lifetime(serial, float(value))
+
+    @staticmethod
+    def _stored_state(store: Any, entity_id: str | None) -> Any:
+        """What the restore store saved for an entity. Home Assistant 2026.11
+        replaced the `last_states` dict with `async_get_stored_state`."""
+        if not entity_id:
+            return None
+        getter = getattr(store, "async_get_stored_state", None)
+        if getter is not None:
+            return getter(entity_id)
+        return store.last_states.get(entity_id)
 
     # ── device info ──────────────────────────────────────────────────────
     def _name(self, ident: str, base: str, others: int) -> str:
